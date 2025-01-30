@@ -3,6 +3,7 @@ import { neon } from "@neondatabase/serverless";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    console.log("body", body);
     const {
       origin_address,
       destination_address,
@@ -19,11 +20,8 @@ export async function POST(request: Request) {
 
     if (
       !origin_address ||
-      !destination_address ||
       !origin_latitude ||
       !origin_longitude ||
-      !destination_latitude ||
-      !destination_longitude ||
       !ride_time ||
       !fare_price ||
       !payment_status ||

@@ -87,6 +87,7 @@ const Payment = ({
             });
 
             if (result.client_secret) {
+              console.log("result", result);
               await fetchAPI("/(api)/ride/create", {
                 method: "POST",
                 headers: {
@@ -94,11 +95,11 @@ const Payment = ({
                 },
                 body: JSON.stringify({
                   origin_address: userAddress,
-                  destination_address: destinationAddress,
+                  destination_address: userAddress,
                   origin_latitude: userLatitude,
                   origin_longitude: userLongitude,
-                  destination_latitude: destinationLatitude,
-                  destination_longitude: destinationLongitude,
+                  destination_latitude: userLatitude,
+                  destination_longitude: userLongitude,
                   ride_time: rideTime.toFixed(0),
                   fare_price: parseInt(amount) * 100,
                   payment_status: "paid",

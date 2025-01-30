@@ -6,6 +6,7 @@ import RideCard from "@/components/RideCard";
 import { images } from "@/constants/index";
 import { useFetch } from "@/lib/fetch";
 import { Ride } from "@/types/type";
+import React from "react";
 
 const Rides = () => {
   const { user } = useUser();

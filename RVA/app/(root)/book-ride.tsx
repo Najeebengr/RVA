@@ -7,12 +7,15 @@ import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants/index";
 import { formatTime } from "@/lib/utils";
 import { useDriverStore, useLocationStore, useServiceStore } from "@/store";
+import React from "react";
+import { useFetch } from "@/lib/fetch";
+import { Service } from "@/types/type";
 
 const BookRide = () => {
   const { user } = useUser();
   const { userAddress, destinationAddress } = useLocationStore();
   const { drivers, selectedDriver } = useDriverStore();
-  const getServiceName = useServiceStore((state) => state.getServiceName);
+  const { data: servicesData } = useFetch<Service[]>("/(api)/service");
   const driverDetails = drivers?.filter(
     (driver) => +driver.id === selectedDriver,
   )[0];
@@ -71,7 +74,7 @@ const BookRide = () => {
             <View className="flex flex-row items-center justify-between w-full border-b border-white py-3">
               <Text className="text-lg font-JakartaRegular">Service</Text>
               <Text className="text-lg font-JakartaRegular">
-                {getServiceName(driverDetails?.service_id.toString())}
+                {servicesData?.find(s => s.id === driverDetails?.service_id.toString())?.name}
               </Text>
             </View>
             { rideDetails?.vehicleType && (driverDetails?.service_id === 2 || driverDetails?.service_id === 1) && (

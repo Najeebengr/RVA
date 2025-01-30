@@ -10,6 +10,7 @@ import { useLocationStore, useServiceStore } from "@/store";
 import CustomDropdown from "@/components/CustomDropdown";
 import { Service } from "@/types/type";
 import { useFetch } from "@/lib/fetch";
+import React from "react";
 
 const FindRide = () => {
   const {
@@ -19,14 +20,19 @@ const FindRide = () => {
     setUserLocation,
   } = useLocationStore();
   const { setSelectedService, setRideDetails } = useServiceStore();
-  const { data: servicesData } = useFetch<Service[]>("/(api)/service");
+  const { data: servicesData, loading: servicesLoading } = useFetch<Service[]>("/(api)/service");
   const [selectedService, setLocalSelectedService] = useState<string | null>("1");
   const [vehicleType, setVehicleType] = useState<string>("");
   const [vehicleModel, setVehicleModel] = useState<string>("");
   const [fuelQuantity, setFuelQuantity] = useState<string>("");
-
+  console.log('Services data:', servicesData);
   const handleFindNow = () => {
     // Validate required fields based on selected service
+    if (!selectedService) {
+      alert("Please select a service");
+      return;
+    }
+
     if (selectedService === "1" && (!vehicleType || !vehicleModel)) {
       alert("Please fill in all required fields");
       return;
@@ -40,8 +46,8 @@ const FindRide = () => {
       return;
     }
 
-    console.log('Selected service before navigation:', selectedService, typeof selectedService);
-    setSelectedService(selectedService);
+    // Convert service ID to string before setting
+    setSelectedService(selectedService.toString());
     setRideDetails({
       vehicleType,
       vehicleModel,
@@ -67,13 +73,17 @@ const FindRide = () => {
       {servicesData && servicesData.length > 0 && (
         <View className="my-2">
           <CustomDropdown
-            items={servicesData?.map(service => ({
+            items={servicesData.map(service => ({
               label: service.name,
-              value: service.id.toString()
+              value: service.id.toString() // Ensure ID is string
             }))}
             onValueChange={(itemValue: string) => {
-              console.log('Service selection changed:', itemValue, typeof itemValue);
+              console.log('Service selection changed:', itemValue);
               setLocalSelectedService(itemValue);
+              // Reset form fields when service changes
+              setVehicleType("");
+              setVehicleModel("");
+              setFuelQuantity("");
             }}
             selectedValue={selectedService || ""}
             label="Service Type"

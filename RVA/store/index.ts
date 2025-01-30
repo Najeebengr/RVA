@@ -19,27 +19,22 @@ interface ServiceStore {
   setRideDetails: (details: RideDetails) => void;
 }
 
-export const useServiceStore = create<ServiceStore>((set, get) => ({
-  services: [],
+interface ServiceState {
+  selectedService: string | null;
+  rideDetails: RideDetails;
+  setSelectedService: (serviceId: string | null) => void;
+  setRideDetails: (details: RideDetails) => void;
+}
+
+export const useServiceStore = create<ServiceState>((set) => ({
   selectedService: null,
   rideDetails: {},
-  setServices: (services) => {
-    console.log('Setting services:', services);
-    set({ services: services || [] }); // Access the data property from API response
+  setSelectedService: (serviceId: string | null) => {
+    // Ensure serviceId is string if not null
+    const normalizedId = serviceId ? serviceId.toString() : null;
+    set({ selectedService: normalizedId });
   },
-  setSelectedService: (serviceId) => {
-    console.log('Setting selected service:', serviceId);
-    set({ selectedService: serviceId });
-  },
-  getServiceName: (serviceId) => {
-    const services = get().services;
-    console.log('Current services:', services);
-    console.log('Looking for service ID:', serviceId);
-    const service = services.find(s => s.id.toString() === serviceId.toString());
-    console.log('Found service:', service);
-    return service ? service.name : 'Unknown Service';
-  },
-  setRideDetails: (details) => set((state) => ({ 
+  setRideDetails: (details: RideDetails) => set((state) => ({ 
     ...state, 
     rideDetails: details 
   })),
@@ -103,4 +98,35 @@ export const useDriverStore = create<DriverStore>((set) => ({
   },
   setDrivers: (drivers: MarkerData[]) => set({ drivers }),
   clearSelectedDriver: () => set({ selectedDriver: null }),
+}));
+
+// Add to existing types
+interface RideRequest {
+  id?: string;
+  userId: string;
+  driverId: number;
+  status: 'pending' | 'accepted' | 'rejected' | 'timeout';
+  serviceId: string;
+  rideDetails: RideDetails;
+  userLocation: {
+    latitude: number | null;
+    longitude: number | null;
+    address: string | null;
+  };
+}
+
+interface RequestStore {
+  currentRequest: RideRequest | null;
+  requestStatus: 'pending' | 'accepted' | 'rejected' | 'timeout' | null;
+  setCurrentRequest: (request: RideRequest) => void;
+  clearRequest: () => void;
+  updateRequestStatus: (status: 'pending' | 'accepted' | 'rejected' | 'timeout') => void;
+}
+
+export const useRequestStore = create<RequestStore>((set) => ({
+  currentRequest: null,
+  requestStatus: null,
+  setCurrentRequest: (request) => set({ currentRequest: request, requestStatus: 'pending' }),
+  clearRequest: () => set({ currentRequest: null, requestStatus: null }),
+  updateRequestStatus: (status) => set({ requestStatus: status }),
 }));

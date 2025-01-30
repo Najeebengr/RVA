@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Text, View } from "react-native";
 import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
 
@@ -11,7 +11,7 @@ import { Driver, MarkerData } from "@/types/type";
 
 const directionsAPI = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
 
-const Map = () => {
+function Map() {
   const { userLatitude, userLongitude } = useLocationStore();
   const { selectedDriver, drivers, setDrivers, setSelectedDriver } = useDriverStore();
   const selectedService = useServiceStore((state) => state.selectedService);
@@ -93,11 +93,11 @@ const Map = () => {
       provider={PROVIDER_DEFAULT}
       className="w-full h-full rounded-2xl"
       tintColor="black"
-      mapType="mutedStandard"
+      mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
       showsPointsOfInterest={false}
       initialRegion={{
-        latitude: userLatitude || 37.78825,
-        longitude: userLongitude || -122.4324,
+        latitude: Number(userLatitude) || 37.78825,
+        longitude: Number(userLongitude) || -122.4324,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       }}
@@ -108,8 +108,8 @@ const Map = () => {
         <Marker
           key={marker.id}
           coordinate={{
-            latitude: marker.latitude,
-            longitude: marker.longitude,
+            latitude: Number(marker.latitude),
+            longitude: Number(marker.longitude),
           }}
           title={`${marker.first_name} (${marker.distance}km away)`}
           description={`${marker.time} mins | $${marker.price}`}
@@ -136,6 +136,6 @@ const Map = () => {
       )}
     </MapView>
   );
-};
+}
 
-export default React.memo(Map);
+export default Map;

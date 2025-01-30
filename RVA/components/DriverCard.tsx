@@ -1,14 +1,17 @@
 import React from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
-import { useServiceStore } from "@/store";
+import { useFetch } from "@/lib/fetch";
 import { icons } from "@/constants/index";
 import { formatTime } from "@/lib/utils";
-import { DriverCardProps } from "@/types/type";
+import { DriverCardProps, Service } from "@/types/type";
 import CustomButton from "@/components/CustomButton";
 
 const DriverCard = ({ item, selected, setSelected }: DriverCardProps) => {
-  const getServiceName = useServiceStore((state) => state.getServiceName);
-  
+  const { data: servicesData } = useFetch<Service[]>("/(api)/service");
+  // Find service name from fetched services
+  const service = servicesData?.find(s => Number(s.id) === Number(item.service_id));
+  const serviceName = service ? service.name : 'Loading...';
+
   const handleSelection = () => {
     // Immediately set the selected driver
     setSelected();
@@ -41,7 +44,7 @@ const DriverCard = ({ item, selected, setSelected }: DriverCardProps) => {
 
           <View className="flex flex-row items-center justify-start mb-2">
             <Text className="text-lg font-JakartaRegular">
-              {getServiceName(item.service_id.toString())}
+              {serviceName}
             </Text>
             
           </View>
