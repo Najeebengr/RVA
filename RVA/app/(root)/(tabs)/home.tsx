@@ -11,6 +11,7 @@ import {
   FlatList,
   ActivityIndicator,
   Platform,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -268,7 +269,6 @@ const Home = () => {
 
   const handleRequest = async (requestId: string, status: 'accepted' | 'rejected' | 'timeout') => {
     setLoadingRequests(true);
-    console.log(requestId , "requestId");
     try {
       await fetch(`/(api)/request/fetch/${requestId}`, {
         method: "PUT",
@@ -278,6 +278,33 @@ const Home = () => {
           status
         }),
       });
+
+      // If accepted, start polling for payment completion
+      if (status === 'accepted') {
+        let attempts = 0;
+        const maxAttempts = 60; // 1 minute timeout
+        
+        const checkStatusInterval = setInterval(async () => {
+          try {
+            const response = await fetch(`/(api)/request/fetch/${requestId}`);
+            const data = await response.json();
+            
+            if (data.status === 'paid_and_created') {
+              clearInterval(checkStatusInterval);
+              const url = `https://www.google.com/maps/dir/?api=1&destination=${data.user_location.latitude},${data.user_location.longitude}`;
+              await Linking.openURL(url);
+            }
+
+            attempts++;
+            if (attempts >= maxAttempts) {
+              clearInterval(checkStatusInterval);
+            }
+          } catch (error) {
+            console.error('Error checking request status:', error);
+          }
+        }, 1000);
+      }
+
       setRequests(prev => prev.filter(req => req.id !== requestId));
     } catch (error) {
       console.error('Error updating request:', error);

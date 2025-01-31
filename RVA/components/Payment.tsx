@@ -8,7 +8,7 @@ import { ReactNativeModal } from "react-native-modal";
 import CustomButton from "@/components/CustomButton";
 import { images } from "@/constants/index";
 import { fetchAPI } from "@/lib/fetch";
-import { useLocationStore } from "@/store";
+import { useLocationStore, useRequestStore } from "@/store";
 import { PaymentProps } from "@/types/type";
 
 const Payment = ({
@@ -30,6 +30,7 @@ const Payment = ({
 
   const { userId } = useAuth();
   const [success, setSuccess] = useState<boolean>(false);
+  const { currentRequest } = useRequestStore();
 
   const openPaymentSheet = async () => {
     await initializePaymentSheet();
@@ -87,8 +88,19 @@ const Payment = ({
             });
 
             if (result.client_secret) {
-              console.log("result", result);
-              await fetchAPI("/(api)/ride/create", {
+              // Update request status to paid
+              await fetchAPI(`/(api)/request/fetch/${currentRequest?.id}`, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  status: 'paid'
+                }),
+              });
+
+              // Create ride record
+              const rideResponse = await fetchAPI("/(api)/ride/create", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -105,6 +117,17 @@ const Payment = ({
                   payment_status: "paid",
                   driver_id: driverId,
                   user_id: userId,
+                }),
+              });
+
+              // Notify driver to open maps
+              await fetchAPI(`/(api)/request/fetch/${currentRequest?.id}`, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  status: 'paid_and_created'
                 }),
               });
 
